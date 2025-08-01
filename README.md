@@ -38,10 +38,16 @@ Test = 20% des données
 
 
 5. Modélisation avancée : Random Forest Regressor et XGBoost
+
 Entraînement du modèle XGBoost sans optimisation
+la figure ci-dessous nous montre la prediction entre le deux modeles
+
+<img width="1043" height="521" alt="image" src="https://github.com/user-attachments/assets/19ea303b-eb5f-4dea-8abd-68ec51abc6f0" />
 
 Résultats:
+
 Random Forest - MSE: 4791923.65, R²: 0.9112
+
 XGBoost - MSE: 4449720.50, R²: 0.9175
 <img width="840" height="487" alt="image" src="https://github.com/user-attachments/assets/2fd41f7d-ecfd-4861-ae0d-5d643e49dd6e" />
 
