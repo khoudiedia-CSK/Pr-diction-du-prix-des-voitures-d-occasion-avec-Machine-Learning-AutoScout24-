@@ -1,0 +1,125 @@
+# 🚀 Projet Prédiction Prix Voitures d’Occasion avec Machine Learning
+
+# 1. Import des librairies
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# 2. Chargement des données
+# Assure-toi que 'autoscout.csv' est dans le même dossier que ce notebook
+df = pd.read_csv("autoscout.csv")
+
+# 3. Exploration rapide
+print("Colonnes du dataset :", df.columns.tolist())
+print("\nAperçu des données :")
+print(df.head())
+print("\nValeurs manquantes par colonne :")
+print(df.isnull().sum())
+
+# 4. Prétraitement
+# On encode les variables catégorielles importantes en One-Hot
+cat_cols = ['Fuel', 'Gearing_Type', 'make_model']
+df_encoded = pd.get_dummies(df, columns=cat_cols, drop_first=True)
+
+# Supposons que 'price' est la cible, on enlève les lignes où price est manquant
+df_encoded = df_encoded.dropna(subset=['price'])
+
+# 5. Séparation features / cible
+X = df_encoded.drop('price', axis=1)
+y = df_encoded['price']
+
+# 6. Split train/test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 7. Modèle 1 : Régression Linéaire
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+y_pred_lr = lr.predict(X_test)
+
+mse_lr = mean_squared_error(y_test, y_pred_lr)
+r2_lr = r2_score(y_test, y_pred_lr)
+
+print(f"Régression Linéaire - MSE: {mse_lr:.2f}, R²: {r2_lr:.4f}")
+
+# 8. Modèle 2 : Random Forest
+rf = RandomForestRegressor(random_state=42)
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+
+mse_rf = mean_squared_error(y_test, y_pred_rf)
+r2_rf = r2_score(y_test, y_pred_rf)
+
+print(f"Random Forest - MSE: {mse_rf:.2f}, R²: {r2_rf:.4f}")
+
+# 9. Modèle 3 : XGBoost sans optimisation
+xgb = XGBRegressor(random_state=42, eval_metric='rmse')
+xgb.fit(X_train, y_train)
+y_pred_xgb = xgb.predict(X_test)
+
+mse_xgb = mean_squared_error(y_test, y_pred_xgb)
+r2_xgb = r2_score(y_test, y_pred_xgb)
+
+print(f"XGBoost (sans GridSearch) - MSE: {mse_xgb:.2f}, R²: {r2_xgb:.4f}")
+
+# 10. Optimisation avec GridSearchCV pour XGBoost
+param_grid = {
+    'n_estimators': [50, 100, 150],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.01, 0.1, 0.2]
+}
+
+grid_search = GridSearchCV(
+    estimator=XGBRegressor(random_state=42, eval_metric='rmse'),
+    param_grid=param_grid,
+    cv=3,
+    scoring='r2',
+    n_jobs=-1,
+    verbose=1
+)
+
+grid_search.fit(X_train, y_train)
+
+print("Meilleurs paramètres :", grid_search.best_params_)
+print(f"Meilleur score R² (CV) : {grid_search.best_score_:.4f}")
+
+# Réentraînement avec meilleurs paramètres
+best_xgb = grid_search.best_estimator_
+y_pred_best = best_xgb.predict(X_test)
+
+mse_best = mean_squared_error(y_test, y_pred_best)
+r2_best = r2_score(y_test, y_pred_best)
+
+print(f"XGBoost (après GridSearch) - MSE: {mse_best:.2f}, R²: {r2_best:.4f}")
+
+# 11. Visualisation comparative des performances
+
+models = ['Régression Linéaire', 'Random Forest', 'XGBoost', 'XGBoost + GridSearch']
+mse_scores = [mse_lr, mse_rf, mse_xgb, mse_best]
+r2_scores = [r2_lr, r2_rf, r2_xgb, r2_best]
+
+plt.figure(figsize=(12,5))
+
+# MSE plot
+plt.subplot(1,2,1)
+plt.bar(models, mse_scores, color=['skyblue', 'lightgreen', 'orange', 'red'])
+plt.title('Comparaison MSE')
+plt.ylabel('MSE')
+plt.xticks(rotation=30)
+
+# R² plot
+plt.subplot(1,2,2)
+plt.bar(models, r2_scores, color=['skyblue', 'lightgreen', 'orange', 'red'])
+plt.title('Comparaison R²')
+plt.ylabel('R²')
+plt.ylim(0,1)
+plt.xticks(rotation=30)
+
+plt.tight_layout()
+plt.show()
+
+# -- FIN --
