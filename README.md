@@ -56,7 +56,6 @@ Résultats:
  Random Forest - MSE: 4791923.65, R²: 0.9112
 
 XGBoost - MSE: 4449720.50, R²: 0.9175
-<img width="840" height="487" alt="image" src="https://github.com/user-attachments/assets/2fd41f7d-ecfd-4861-ae0d-5d643e49dd6e" />
 
 NB :
 Même sans optimisation avancée, XGBoost montre une robustesse et une efficacité impressionnantes. 
